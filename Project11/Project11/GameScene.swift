@@ -11,8 +11,12 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    private let avaialbleBalls = ["ballRed", "ballBlue", "ballCyan", "ballGreen", "ballGrey", "ballPurple", "ballYellow"]
+    
     var scoreLabel: SKLabelNode!
     var editLabel: SKLabelNode!
+    var ballsCountLabel: SKLabelNode!
+
     
     var score = 0 {
         didSet {
@@ -27,6 +31,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             } else {
                 editLabel.text = "Edit"
             }
+        }
+    }
+    
+    var ballsCount = 5 {
+        didSet {
+            ballsCountLabel.text = "Balls: \(ballsCount)"
         }
     }
     
@@ -63,6 +73,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         editLabel.text = "Edit"
         editLabel.position = CGPoint(x: 80, y: 700)
         addChild(editLabel)
+        
+        ballsCountLabel = SKLabelNode(fontNamed: "Chalkduster")
+        ballsCountLabel.text = "Balls: \(ballsCount)"
+        ballsCountLabel.position = CGPoint(x: 512, y: 700)
+        addChild(ballsCountLabel)
     }
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
@@ -79,18 +94,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     let box = SKSpriteNode(color: UIColor(red: CGFloat.random(in: 0...1), green: CGFloat.random(in: 0...1), blue: CGFloat.random(in: 0...1), alpha: 1.0), size: size)
                     box.zRotation = CGFloat.random(in: 0...3)
                     box.position = location
+                    box.name = "obstacle"
                     box.physicsBody = SKPhysicsBody(rectangleOf: box.size)
                     box.physicsBody?.isDynamic = false
                     addChild(box)
                     
                 } else {
-                    let ball = SKSpriteNode(imageNamed: "ballRed")
-                    ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2.0)
-                    ball.physicsBody!.contactTestBitMask = ball.physicsBody!.collisionBitMask
-                    ball.physicsBody?.restitution = 0.4
-                    ball.name = "ball"
-                    ball.position = location
-                    addChild(ball)
+//                  create ball only if user tapped above 650 y value
+                    if location.y > 650 && ballsCount > 0 {
+                        // getting random ball
+                        ballsCount -= 1
+                        let ball = SKSpriteNode(imageNamed: avaialbleBalls.randomElement()!)
+                        ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2.0)
+                        ball.physicsBody!.contactTestBitMask = ball.physicsBody!.collisionBitMask
+                        ball.physicsBody?.restitution = 0.4
+                        ball.name = "ball"
+                        ball.position = location
+                        addChild(ball)
+                    }
                 }
             }
         }
@@ -137,9 +158,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if object.name == "good" {
             destroy(ball: ball)
             score += 1
+            ballsCount += 1
         } else if object.name == "bad" {
             destroy(ball: ball)
             score -= 1
+        } else if object.name == "obstacle" {
+            object.removeFromParent()
         }
     }
     
