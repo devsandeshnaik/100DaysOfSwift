@@ -17,6 +17,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var intensity: UISlider!
+    @IBOutlet weak var radius: UISlider!
     
     
     override func viewDidLoad() {
@@ -54,7 +55,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
         
         if inputKeys.contains(kCIInputRadiusKey) {
-            currentFilter.setValue(intensity.value * 200, forKey: kCIInputRadiusKey)
+            currentFilter.setValue(radius.value * 200, forKey: kCIInputRadiusKey)
         }
         
         if inputKeys.contains(kCIInputScaleKey) {
@@ -76,9 +77,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func setFilter(action: UIAlertAction) {
+
         guard currentImage != nil else { return }
-        guard  let actionTitle = action.title else { return  }
+        guard  let actionTitle = action.title else { return }
         
+        title = actionTitle
         currentFilter = CIFilter(name: actionTitle)
         let beginImage = CIImage(image: currentImage)
         currentFilter.setValue(beginImage, forKey: kCIInputImageKey)
@@ -117,11 +120,16 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     @IBAction func save(_ sender: UIButton) {
-        guard let image = imageView.image else { return }
-        UIImageWriteToSavedPhotosAlbum(image,
-                                       self,
-                                       #selector(image(_:didFinishSavingwithError:contextInfo:)),
-                                       nil)
+        if let image = imageView.image {
+            UIImageWriteToSavedPhotosAlbum(image,
+                                           self,
+                                           #selector(image(_:didFinishSavingwithError:contextInfo:)),
+                                           nil)
+        } else {
+            let alert = UIAlertController(title: "Empty Image", message: "You have not selected any image yet", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .default))
+            present(alert, animated: true)
+        }
     }
     
     @IBAction func intensityChanged(_ sender: UISlider) {
