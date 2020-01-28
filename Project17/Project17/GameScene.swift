@@ -16,12 +16,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     
     var possibleEnimies = ["ball", "hammer", "tv"]
     var gametimer: Timer?
-    var isGmeOver = false
+    var isGameOver = false
     var score = 0 {
         didSet{
             scoreLabel.text = "Score: \(score)"
         }
     }
+    
+    var enemyCount = 20
+    var timeInterval: TimeInterval = 1.0
     
     override func didMove(to view: SKView) {
           
@@ -47,15 +50,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
         
-        gametimer = Timer.scheduledTimer(timeInterval: 0.35,
-                                         target: self,
-                                         selector: #selector(createEnemy),
-                                         userInfo: nil,
-                                         repeats: true)
+       scheduleTimer(with: timeInterval)
         
     }
     
+    
+    func scheduleTimer(with duration: TimeInterval) {
+        gametimer = Timer.scheduledTimer(timeInterval: duration,
+                                                target: self,
+                                                selector: #selector(createEnemy),
+                                                userInfo: nil,
+                                                repeats: true)
+    }
+    
     @objc func createEnemy() {
+        
+        enemyCount -= 1
+        if enemyCount == 0 {
+            gametimer?.invalidate()
+            timeInterval -= 0.1
+            scheduleTimer(with: timeInterval)
+            return
+        }
+        
         guard  let enemy = possibleEnimies.randomElement() else { return }
         
         let spirit = SKSpriteNode(imageNamed: enemy)
@@ -74,8 +91,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             if node.position.x < -300 {
                 node.removeFromParent()
             }
-            
-            if !isGmeOver { score += 1 }
+            if !isGameOver { score += 1 }
         }
     }
     
@@ -98,7 +114,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         addChild(explosion)
         
         player.removeFromParent()
-        isGmeOver = true
+        isGameOver = true
+        gametimer?.invalidate() // Stops the time resulting in no more enemy generation
+    }
+    
+//    Challenge 1: Destroy the space ship if user lifts his/her finger
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let explosion = SKEmitterNode(fileNamed: "explosion")!
+        explosion.position = player.position
+        addChild(explosion)
+        
+        player.removeFromParent()
+        isGameOver = true
+        gametimer?.invalidate() // Stops the time resulting in no more enemy generation
     }
     
 
