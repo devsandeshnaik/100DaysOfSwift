@@ -154,4 +154,39 @@ class GameScene: SKScene {
         }
     }
     
+    
+    func explode(fireWork: SKNode) {
+        if let emitter = SKEmitterNode(fileNamed: "explode") {
+            emitter.position = fireWork.position
+            addChild(emitter)
+        }
+        
+        fireWork.removeFromParent()
+    }
+    
+    
+    func explodeFireWorks() {
+        var numExploded = 0
+        
+        for (index, fireworkContainer) in fireworks.enumerated().reversed() {
+            guard  let firework = fireworkContainer.children.first as? SKSpriteNode else {
+                continue
+            }
+            
+            if firework.name == "selected" {
+                explode(fireWork: fireworkContainer)
+                fireworks.remove(at: index)
+                numExploded += 1
+            }
+            
+            switch numExploded {
+            case 0: break
+            case 1: score += 200
+            case 2: score += 500
+            case 3: score += 1500
+            case 4: score += 2500
+            default: score += 4000
+            }
+        }
+    }
 }
